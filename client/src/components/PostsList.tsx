@@ -35,30 +35,30 @@ export default function PostsList() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
+    LoaldatatPosts();
+  }, []);
+
+  const LoaldatatPosts = () => {
     axios
       .get("http://localhost:8080/Posts")
       .then((response) => {
         setPosts(response.data);
-        setFilteredPosts(response.data);
       })
-      .catch((error) => console.error("Có lỗi xảy ra.", error));
-  }, []);
+      .catch((error) => console.error("có lỗi xảy ra.", error));
+  };
 
   useEffect(() => {
-    let filtered = posts;
-
     if (searchKeyword.trim() !== "") {
-      filtered = filtered.filter((post) =>
-        post.title.toLowerCase().includes(searchKeyword.toLowerCase())
-      );
+      axios
+        .get(`http://localhost:8080/Posts?title_like=${searchKeyword}`)
+        .then((response) => {
+          setFilteredPosts(response.data);
+        })
+        .catch((error) => console.error("Error searching posts:", error));
+    } else {
+      setFilteredPosts(posts); // Reset to all posts if searchKeyword is empty
     }
-
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((post) => post.status === statusFilter);
-    }
-
-    setFilteredPosts(filtered);
-  }, [searchKeyword, statusFilter, posts]);
+  }, [searchKeyword, posts]);
 
   const handleBlockClick = (article: Posts) => {
     setCurrentArticle(article);
