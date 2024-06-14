@@ -54,11 +54,24 @@ export default function PostsList() {
         .then((response) => {
           setFilteredPosts(response.data);
         })
-        .catch((error) => console.error("Error searching posts:", error));
+        .catch((error) => console.error("Có lỗi xảy ra.", error));
     } else {
-      setFilteredPosts(posts); // Reset to all posts if searchKeyword is empty
+      setFilteredPosts(posts);
     }
   }, [searchKeyword, posts]);
+
+  useEffect(() => {
+    if (statusFilter !== "all") {
+      axios
+        .get(`http://localhost:8080/Posts?status_like=${statusFilter}`)
+        .then((response) => {
+          setFilteredPosts(response.data);
+        })
+        .catch((error) => console.error("Có lỗi xảy ra.", error));
+    } else {
+      setFilteredPosts(posts);
+    }
+  }, [statusFilter, posts]);
 
   const handleBlockClick = (article: Posts) => {
     setCurrentArticle(article);
