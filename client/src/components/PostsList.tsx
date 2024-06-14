@@ -12,10 +12,13 @@ interface Posts {
 
 export default function PostsList() {
   const [posts, setPosts] = useState<Posts[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Posts[]>([]);
   const [showModal, setShowModal] = useState<boolean>(false);
   const [currentArticle, setCurrentArticle] = useState<Posts | null>(null);
   const [showAddForm, setShowAddForm] = useState<boolean>(false);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [newPost, setNewPost] = useState<{
+    id?: number;
     title: string;
     image: string;
     create_at: string;
@@ -28,13 +31,34 @@ export default function PostsList() {
   const [showResetConfirm, setShowResetConfirm] = useState<boolean>(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [postToDelete, setPostToDelete] = useState<Posts | null>(null);
+  const [searchKeyword, setSearchKeyword] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
     axios
       .get("http://localhost:8080/Posts")
-      .then((response) => setPosts(response.data))
+      .then((response) => {
+        setPosts(response.data);
+        setFilteredPosts(response.data);
+      })
       .catch((error) => console.error("Có lỗi xảy ra.", error));
   }, []);
+
+  useEffect(() => {
+    let filtered = posts;
+
+    if (searchKeyword.trim() !== "") {
+      filtered = filtered.filter((post) =>
+        post.title.toLowerCase().includes(searchKeyword.toLowerCase())
+      );
+    }
+
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((post) => post.status === statusFilter);
+    }
+
+    setFilteredPosts(filtered);
+  }, [searchKeyword, statusFilter, posts]);
 
   const handleBlockClick = (article: Posts) => {
     setCurrentArticle(article);
@@ -65,6 +89,7 @@ export default function PostsList() {
             : article
         );
         setPosts(updatedPosts);
+        setFilteredPosts(updatedPosts);
         setShowModal(false);
         setCurrentArticle(null);
       })
@@ -72,6 +97,7 @@ export default function PostsList() {
   };
 
   const handleAddPostClick = () => {
+    setIsEditMode(false);
     setShowAddForm(true);
   };
 
@@ -96,22 +122,45 @@ export default function PostsList() {
       return;
     }
 
-    if (posts.some((post) => post.title === newPost.title)) {
+    if (
+      posts.some(
+        (post) => post.title === newPost.title && post.id !== newPost.id
+      )
+    ) {
       setError("Tên bài viết không được phép trùng");
       return;
     }
 
-    axios
-      .post("http://localhost:8080/Posts", {
-        ...newPost,
-        status: "Đã xuất bản",
-      })
-      .then((response) => {
-        setPosts([...posts, response.data]);
-        setShowAddForm(false);
-        setNewPost({ title: "", image: "", create_at: "" });
-      })
-      .catch((error) => console.error("Có lỗi xảy ra.", error));
+    if (isEditMode) {
+      // Update existing post
+      axios
+        .put(`http://localhost:8080/Posts/${newPost.id}`, newPost)
+        .then((response) => {
+          const updatedPosts = posts.map((post) =>
+            post.id === newPost.id ? response.data : post
+          );
+          setPosts(updatedPosts);
+          setFilteredPosts(updatedPosts);
+          setShowAddForm(false);
+          setNewPost({ title: "", image: "", create_at: "" });
+        })
+        .catch((error) => console.error("Có lỗi xảy ra.", error));
+    } else {
+      // Add new post
+      axios
+        .post("http://localhost:8080/Posts", {
+          ...newPost,
+          status: "Đã xuất bản",
+        })
+        .then((response) => {
+          const updatedPosts = [...posts, response.data];
+          setPosts(updatedPosts);
+          setFilteredPosts(updatedPosts);
+          setShowAddForm(false);
+          setNewPost({ title: "", image: "", create_at: "" });
+        })
+        .catch((error) => console.error("Có lỗi xảy ra.", error));
+    }
   };
 
   const handleDeleteClick = (article: Posts) => {
@@ -134,10 +183,32 @@ export default function PostsList() {
           (article) => article.id !== postToDelete.id
         );
         setPosts(updatedPosts);
+        setFilteredPosts(updatedPosts);
         setShowDeleteConfirm(false);
         setPostToDelete(null);
       })
       .catch((error) => console.error("Có lỗi xảy ra.", error));
+  };
+
+  const handleEditClick = (article: Posts) => {
+    setIsEditMode(true);
+    setNewPost({ ...article });
+    setShowAddForm(true);
+  };
+
+  const handleCancelEdit = () => {
+    setShowAddForm(false);
+    setNewPost({ title: "", image: "", create_at: "" });
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchKeyword(e.target.value);
+  };
+
+  const handleStatusFilterChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    setStatusFilter(e.target.value);
   };
 
   return (
@@ -145,63 +216,79 @@ export default function PostsList() {
       <div className="footer">Quản lý bài viết</div>
       <div className="container">
         <div className="header">
-          <input type="text" placeholder="Nhập từ khóa tìm kiếm" />
-          <select>
+          <input
+            type="text"
+            placeholder="Nhập từ khóa tìm kiếm"
+            value={searchKeyword}
+            onChange={handleSearchChange}
+          />
+          <select value={statusFilter} onChange={handleStatusFilterChange}>
             <option value="all">Lọc bài viết</option>
+            <option value="Đã xuất bản">Đã xuất bản</option>
+            <option value="Ngừng xuất bản">Ngừng xuất bản</option>
           </select>
           <button onClick={handleAddPostClick}>Thêm mới bài viết</button>
         </div>
         <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>STT</th>
-                <th>Tiêu đề</th>
-                <th>Hình ảnh</th>
-                <th>Ngày viết</th>
-                <th>Trạng thái</th>
-                <th>Chức năng</th>
-              </tr>
-            </thead>
-            <tbody>
-              {posts.slice(0, 5).map((article, index) => (
-                <tr key={article.id}>
-                  <td>{index + 1}</td>
-                  <td>{article.title}</td>
-                  <td>
-                    <img src={article.image} alt={article.title} />
-                  </td>
-                  <td>{article.create_at}</td>
-                  <td>
-                    <span
-                      className={`status ${
-                        article.status === "Ngừng xuất bản"
-                          ? "blocked"
-                          : "published"
-                      }`}
-                    >
-                      {article.status}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="block"
-                      onClick={() => handleBlockClick(article)}
-                    >
-                      Chặn
-                    </button>
-                    <button className="edit">Sửa</button>
-                    <button
-                      className="delete"
-                      onClick={() => handleDeleteClick(article)}
-                    >
-                      Xóa
-                    </button>
-                  </td>
+          {filteredPosts.length > 0 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>STT</th>
+                  <th>Tiêu đề</th>
+                  <th>Hình ảnh</th>
+                  <th>Ngày viết</th>
+                  <th>Trạng thái</th>
+                  <th>Chức năng</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredPosts.map((article, index) => (
+                  <tr key={article.id}>
+                    <td>{index + 1}</td>
+                    <td>{article.title}</td>
+                    <td>
+                      <img src={article.image} alt={article.title} />
+                    </td>
+                    <td>{article.create_at}</td>
+                    <td>
+                      <span
+                        className={`status ${
+                          article.status === "Ngừng xuất bản"
+                            ? "blocked"
+                            : "published"
+                        }`}
+                      >
+                        {article.status}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="block"
+                        onClick={() => handleBlockClick(article)}
+                      >
+                        Chặn
+                      </button>
+                      <button
+                        className="edit"
+                        onClick={() => handleEditClick(article)}
+                      >
+                        Sửa
+                      </button>
+                      <button
+                        className="delete"
+                        onClick={() => handleDeleteClick(article)}
+                      >
+                        Xóa
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>Không có kết quả tìm kiếm</p>
+          )}
         </div>
       </div>
 
@@ -227,7 +314,7 @@ export default function PostsList() {
             <button className="close-icon" onClick={handleCloseAddForm}>
               &times;
             </button>
-            <h2>Thêm mới bài viết</h2>
+            <h2>{isEditMode ? "Cập nhật bài viết" : "Thêm mới bài viết"}</h2>
             <label>
               Tên bài viết:
               <input
@@ -260,7 +347,14 @@ export default function PostsList() {
             </label>
             {error && <p className="error">{error}</p>}
             <button onClick={handleResetForm}>Làm mới</button>
-            <button onClick={handlePublishPost}>Xuất bản</button>
+            <button
+              onClick={isEditMode ? handleCancelEdit : handleCloseAddForm}
+            >
+              Hủy
+            </button>
+            <button onClick={handlePublishPost}>
+              {isEditMode ? "Cập nhật" : "Xuất bản"}
+            </button>
           </div>
         </div>
       )}

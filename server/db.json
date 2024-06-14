@@ -4,7 +4,7 @@
       "id": 1,
       "title": "ReacteJS",
       "image": "https://monamedia.co/wp-content/uploads/2022/11/reactjs.png",
-      "create_at": "2020-01-01",
+      "create_at": "2020-01-15",
       "status": "Đã xuất bản"
     },
     {
@@ -12,7 +12,7 @@
       "title": "TypescriptJS",
       "image": "https://www.sitepen.com/typescript-code-blocks.34Qg3nlF.svg",
       "create_at": "2000-09-10",
-      "status": "Đã xuất bản"
+      "status": "Ngừng xuất bản"
     },
     {
       "id": 3,
@@ -20,6 +20,27 @@
       "image": "https://elcom.com.vn/storage/uploads/images/tGOQyfmxy5q0hKeq1cHu8cJnU54swB8DznYk6ELi.jpg",
       "create_at": "2010-12-03",
       "status": "Đã xuất bản"
+    },
+    {
+      "title": "python",
+      "image": "https://media.licdn.com/dms/image/C5612AQEaL4gLanR2pw/article-cover_image-shrink_720_1280/0/1637656233461?e=2147483647&v=beta&t=tK8ZgcKbPgpPM39AvJ3uLPDaRZhUOWZ_YtfivkBeCHA",
+      "create_at": "2024-05-27",
+      "status": "Ngừng xuất bản",
+      "id": 4
+    },
+    {
+      "title": "c++",
+      "image": "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2023/12/c-thumb.jpg",
+      "create_at": "2024-07-04",
+      "status": "Ngừng xuất bản",
+      "id": 5
+    },
+    {
+      "title": "scss",
+      "image": "https://i0.wp.com/techprimelab.com/wp-content/uploads/2020/06/SCSS-or-CSS.jpg?fit=1024%2C576&ssl=1",
+      "create_at": "2024-05-27",
+      "status": "Đã xuất bản",
+      "id": 6
     }
   ]
 }
