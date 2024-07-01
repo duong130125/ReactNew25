@@ -5,14 +5,14 @@
       "title": "ReacteJS",
       "image": "https://monamedia.co/wp-content/uploads/2022/11/reactjs.png",
       "create_at": "2020-01-15",
-      "status": "Đã xuất bản"
+      "status": "Ngừng xuất bản"
     },
     {
       "id": 2,
       "title": "TypescriptJS",
       "image": "https://www.sitepen.com/typescript-code-blocks.34Qg3nlF.svg",
       "create_at": "2000-09-10",
-      "status": "Ngừng xuất bản"
+      "status": "Đã xuất bản"
     },
     {
       "id": 3,
